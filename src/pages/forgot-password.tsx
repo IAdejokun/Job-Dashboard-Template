@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { SignInView } from 'src/sections/auth';
+import { ForgotPasswordView } from 'src/sections/auth';
 
 // ----------------------------------------------------------------------
 
@@ -10,10 +10,11 @@ export default function Page() {
   return (
     <>
       <Helmet>
-        <title> {`Admin Sign in - ${CONFIG.appName}`}</title>
+        <title> {`Admin Forgot Password - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <SignInView />
+          <ForgotPasswordView/>
+
     </>
   );
 }
