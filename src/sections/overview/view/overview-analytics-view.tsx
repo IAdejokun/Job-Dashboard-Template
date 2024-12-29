@@ -1,8 +1,18 @@
+import { useState, useEffect } from 'react';
+
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 
 import { _tasks, _posts, _timeline } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
+// import { getAdminData } from 'src/services/getAdminData';
+// import { makeAuthenticatedRequest } from 'src/services/authRequest';
+
+import type { AdminData } from 'src/interface/admin-data';
+
+import axios from 'axios';
+
+import Alert  from '@mui/material/Alert';
 
 import { AnalyticsNews } from '../analytics-news';
 import { AnalyticsTasks } from '../analytics-tasks';
@@ -17,10 +27,68 @@ import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 // ----------------------------------------------------------------------
 
 export function OverviewAnalyticsView() {
+
+  
+
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
+  
+  const [error, setError] = useState<string | null>(null);
+
+  const client = axios.create({
+    baseURL: 'http://jobapi.run.edu.ng/',
+  });
+
+  client.interceptors.request.use((config) => {
+    const token = localStorage.getItem('authtoken');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        
+        const email = localStorage.getItem('userEmail');
+
+        if (!email) {
+          throw new Error('No email found in localStorage');
+        }
+
+        const response = await client.get('getadminbyemail', {
+          params: {
+            emailAddy: email,
+          },
+        });
+        setAdminData(response.data);
+      } catch (err) {
+        console.error('Error fetching admin data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch admin data');
+      } 
+    };
+
+    fetchAdminData();
+  }, [client]);
+
+
+  // capitalize the firstletter
+  
+  function capitalizeFirstLetter(string: string) {
+    const randomString = string.toLowerCase()
+    return randomString.charAt(0).toUpperCase() + randomString.slice(1);
+  }
+
   return (
     <DashboardContent maxWidth="xl">
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
       <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
-        Hi, Welcome back 👋
+        Hi, Welcome back {adminData?.firstname ? capitalizeFirstLetter(adminData.firstname) : 'Guest'} 👋
       </Typography>
 
       <Grid container spacing={3}>
