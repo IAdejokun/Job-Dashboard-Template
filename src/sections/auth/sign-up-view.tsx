@@ -27,7 +27,7 @@ export function SignUpView() {
   // SignupService
 
  const client = axios.create({
-   baseURL: 'http://jobapi.run.edu.ng/',
+   baseURL: '',
  });
 
 
