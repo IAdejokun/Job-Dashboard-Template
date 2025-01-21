@@ -36,7 +36,7 @@ interface FormErrors {
     // verifyService
 
   const client = axios.create({
-    baseURL: '',
+    baseURL: 'http://jobapi.run.edu.ng/',
   });
 
   const router = useRouter();
