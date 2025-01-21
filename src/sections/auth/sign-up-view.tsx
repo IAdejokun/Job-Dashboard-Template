@@ -12,14 +12,84 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';// import Divider from '@mui/material/Divider';
+import type { RadioProps } from '@mui/material/Radio';
+
+import Radio from '@mui/material/Radio';
 import Snackbar from '@mui/material/Snackbar';
+import { styled } from '@mui/material/styles';
+import FormLabel from '@mui/material/FormLabel';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { Iconify } from 'src/components/iconify'; 
+import { Iconify } from 'src/components/iconify';
 
 
+
+
+// styling for radios
+
+  const BpIcon = styled('span')(({ theme }) => ({
+    borderRadius: '50%',
+    width: 16,
+    height: 16,
+    boxShadow: 'inset 0 0 0 1px rgba(16,22,26,.2), inset 0 -1px 0 rgba(16,22,26,.1)',
+    backgroundColor: '#f5f8fa',
+    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.8),hsla(0,0%,100%,0))',
+    '.Mui-focusVisible &': {
+      outline: '2px auto rgba(19,124,189,.6)',
+      outlineOffset: 2,
+    },
+    'input:hover ~ &': {
+      backgroundColor: '#ebf1f5',
+      ...theme.applyStyles('dark', {
+        backgroundColor: '#30404d',
+      }),
+    },
+    'input:disabled ~ &': {
+      boxShadow: 'none',
+      background: 'rgba(206,217,224,.5)',
+      ...theme.applyStyles('dark', {
+        background: 'rgba(57,75,89,.5)',
+      }),
+    },
+    ...theme.applyStyles('dark', {
+      boxShadow: '0 0 0 1px rgb(16 22 26 / 40%)',
+      backgroundColor: '#394b59',
+      backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.05),hsla(0,0%,100%,0))',
+    }),
+  }));
+
+  const BpCheckedIcon = styled(BpIcon)({
+    backgroundColor: '#137cbd',
+    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.1),hsla(0,0%,100%,0))',
+    '&::before': {
+      display: 'block',
+      width: 16,
+      height: 16,
+      backgroundImage: 'radial-gradient(#fff,#fff 28%,transparent 32%)',
+      content: '""',
+    },
+    'input:hover ~ &': {
+      backgroundColor: '#106ba3',
+    },
+  });
+
+  // Inspired by blueprintjs
+  function BpRadio(props: RadioProps) {
+    return (
+      <Radio
+        disableRipple
+        color="default"
+        checkedIcon={<BpCheckedIcon />}
+        icon={<BpIcon />}
+        {...props}
+      />
+    );
+  }
 
 
 
@@ -33,12 +103,10 @@ export function SignUpView() {
 
   // form data interface
   interface FormData {
-        username: string;
-        emailAddy: string;
-        firstname: string;
-        middlename: string;
-      lastname: string;
+      username: string;
+      emailAddy: string;
       password: string;
+      confirmPassword: string;
       frontendurl: string;
       processor: string;
       is_Active: string;
@@ -49,9 +117,15 @@ export function SignUpView() {
         [key: string]: string | undefined;
     }
 
-    const router = useRouter();
-    
-    const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  
+  const [isStaff, setStaff] = useState(true)
+
+  const [isStudent, setStudent] = useState(false)
+
+  const [showPassword, setShowPassword] = useState(false)
+  
+  const [showConfirmPassword, setShowConfirmPasword] = useState(false)
 
     const [open, setOpen] = React.useState(false);
 
@@ -72,10 +146,8 @@ export function SignUpView() {
     const [formData, setFormData] = useState({
         username : '',
         emailAddy : '',
-        firstname : '',
-        middlename : '',
-        lastname : '',
       password: '',
+      confirmPassword: '',
       frontendurl: '',
       processor: '',
       is_Active:''
@@ -117,20 +189,36 @@ export function SignUpView() {
       setErrors(newErrors);
 
       if (Object.keys(newErrors).length === 0) {
-        const username = formData.username;
-        const processor = 'frontend';
-        const frontendurl = `http://localhost:3039/profile/${username}`;
+        // const username = formData.username;
+        const processor = 'verify';
+        const frontendurl = `http://jobs.run.edu.ng/`;
         
+        if (isStaff) {
+          formData.username = 'randomUser'
+        }
+
+        if (isStudent) {
+          formData.emailAddy = 'randomuser@gmail.com'
+        }
+
         formData.frontendurl = frontendurl;
         formData.processor = processor;
         formData.is_Active = 'true';
+
 
         console.log("Form Submitted successfully");
 
       // request data to be sent to the backend
         const requestBody = {
-          'user': formData
-        }
+          user: {
+            username: formData.username,
+            emailAddy: formData.emailAddy,
+            password: formData.password,
+            frontendurl: formData.frontendurl,
+            processor: formData.processor,
+            is_Active: formData.is_Active,
+          },
+        };
         console.log(requestBody);
 
          (async () => {
@@ -147,7 +235,7 @@ export function SignUpView() {
              setOpen(true);
 
             setTimeout(() => {
-            router.push('/sign-in');
+            router.push('/verify');
           }, 5000 )
 
            } catch (err) {
@@ -184,46 +272,40 @@ export function SignUpView() {
     const validateForm = (data: FormData): FormErrors => {
         const validationErrors: FormErrors = {};
 
+      if(isStudent === true)
         if (!data.username.trim()) {
             validationErrors.username = 'Username is required';    
-        } else if (data.username.length < 4) {
-            validationErrors.username = 'Username must be at least 4 characters long';
-        }
-
-
-         if (!data.firstname.trim()) {
-            validationErrors.firstname = 'Firstname is required';    
-        } else if (data.firstname.length < 3) {
-            validationErrors.firstname = 'Firstname must be at least 3 characters long';
-        }
-
-         if (!data.lastname.trim()) {
-            validationErrors.lastname = 'Lastname is required';    
-        } else if (data.username.length < 3) {
-            validationErrors.lastname = 'Lastname must be at least 3 characters long';
-        }
-
-         if (!data.middlename.trim()) {
-           validationErrors.middlename = 'Middlename is required';
-         } else if (data.username.length < 3) {
-           validationErrors.username = 'Middlename must be at least 3 characters long';
-         }
-
+        } else if (!/^run\/[a-z]{3}\/\d{2}\/\d{4}$/i.test(data.username)) {
+             validationErrors.username = 'Username must be in the format: run/abc/12/3456';
+      }
+      
+          if(isStaff === true){
          if (!data.emailAddy.trim()) {
            validationErrors.emailAddy = 'Email is required';
          } else if (!/\S+@\S+\.\S+/.test(data.emailAddy)) {
            validationErrors.emailAddy = 'Email is invalid';
+            }
+            
          }
-
         if (!data.password) {
             validationErrors.password = 'Password is required';
         } else if (data.password.length < 8) {
             validationErrors.password = 'Password must be at least 8 characters long';
-        }
+      }
+      
+      if (!data.confirmPassword) {
+        validationErrors.confirmPassword = 'Confirm your Password';
+      } else if (data.confirmPassword.length < 8) {
+        validationErrors.confirmPassword = 'Password must be at least 8 characters long';
+      } else if (data.confirmPassword !== data.password){
+        validationErrors.confirmPassword = 'Password do not match';
+      } 
         
         return validationErrors;
     }
 
+  
+  
   // form rendering function
   
     const renderForm = (
@@ -244,6 +326,7 @@ export function SignUpView() {
           onChange={handleChange}
           autoComplete="true"
           sx={{ mb: 3 }}
+          disabled = {isStaff}
         />
         {errors.username && <span style={{ color: 'red' }}>{errors.username}</span>}
 
@@ -257,52 +340,10 @@ export function SignUpView() {
           onChange={handleChange}
           autoComplete="true"
           sx={{ mb: 3 }}
+          disabled = {isStudent}
         />
 
         {errors.emailAddy && <span style={{ color: 'red' }}>{errors.emailAddy}</span>}
-
-        <TextField
-          fullWidth
-          name="firstname"
-          label="Firstname"
-          placeholder="John"
-          //   defaultValue="hello@gmail.com"
-          InputLabelProps={{ shrink: true }}
-          value={formData.firstname}
-          onChange={handleChange}
-          autoComplete="true"
-          sx={{ mb: 3 }}
-        />
-
-        {errors.firstname && <span style={{ color: 'red' }}>{errors.firstname}</span>}
-
-        <TextField
-          fullWidth
-          name="middlename"
-          label="Middlename"
-          placeholder="Adam"
-          InputLabelProps={{ shrink: true }}
-          value={formData.middlename}
-          onChange={handleChange}
-          autoComplete="true"
-          sx={{ mb: 3 }}
-        />
-
-            {errors.middlename && <span style={{ color: 'red' }}>{errors.middlename}</span>}
-
-        <TextField
-          fullWidth
-          name="lastname"
-          label="Lastname"
-          placeholder="Doe"
-          InputLabelProps={{ shrink: true }}
-          value={formData.lastname}
-          onChange={handleChange}
-          autoComplete="true"
-          sx={{ mb: 3 }}
-        />
-
-            {errors.lastname && <span style={{ color: 'red' }}>{errors.lastname}</span>}
 
         <TextField
           fullWidth
@@ -325,7 +366,51 @@ export function SignUpView() {
           sx={{ mb: 3 }}
         />
 
-            {errors.password && <span style={{ color: 'red' }}>{errors.password}</span>}
+        {errors.password && <span style={{ color: 'red' }}>{errors.password}</span>}
+
+        <TextField
+          fullWidth
+          name="confirmPassword"
+          label="Confirm Password"
+          placeholder="@demo1234"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          InputLabelProps={{ shrink: true }}
+          type={showConfirmPassword ? 'text' : 'password'}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowConfirmPasword(!showConfirmPassword)} edge="end">
+                  <Iconify
+                    icon={showConfirmPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                  />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mb: 3 }}
+        />
+
+        {errors.confirmPassword && <span style={{ color: 'red' }}>{errors.confirmPassword}</span>}
+
+        {/* add the radio buttons */}
+
+        <FormControl fullWidth sx={{ mb: 1}}>
+          <FormLabel id="demo-customized-radios" sx={{ml:1}}>Role</FormLabel>
+          <RadioGroup
+            row
+            defaultValue="Staff"
+            aria-labelledby="demo-customized-radios"
+            name="customized-radios"
+            sx={{ ml: 1 }}
+          >
+            <FormControlLabel value="Staff" control={<BpRadio />} label="Staff" onClick={() => { setStaff(true); setStudent(false) }} />
+            <FormControlLabel value="Student" control={<BpRadio />} label="Student" onClick={() => { setStudent(true); setStaff(false) }} />
+          </RadioGroup>
+        </FormControl>
+
+        {isStudent && <p>Email field not required for student </p> }
+        {isStaff && <p>Username field not required for staff</p> }
 
         <LoadingButton fullWidth size="large" type="submit" color="inherit" variant="contained">
           Sign Up

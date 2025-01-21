@@ -33,7 +33,6 @@ export function SignInView() {
 
   // form data interface
   interface FormData {
-    username: string;
     emailAddy: string;
     password: string;
     frontendURL: string;
@@ -70,7 +69,7 @@ const [success, setSuccess] = useState(false);
 
   const [errLogOpen, setErrLogOpen] = React.useState(false);
   
-  const [userEmail, setUserEmail] = useState('');
+  const [, setUserEmail] = useState('');
 
   const handleClose = (event?: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
          if (reason === 'clickaway') {
@@ -82,10 +81,9 @@ const [success, setSuccess] = useState(false);
   };
   
   const [formData, setFormData] = useState({
-          username : '',
           emailAddy : '',
-    password: '',
-    frontendURL: '',
+          password: '',
+          frontendURL: '',
           processor:''
       })
 
@@ -128,9 +126,9 @@ const [success, setSuccess] = useState(false);
           setErrors(newErrors);
   
     if (Object.keys(newErrors).length === 0) {
-      const username = formData.username;
-      const processor = 'frontend';
-      const frontendurl = `http://localhost:3039/profile/${username}`;
+      // const username = formData.username;
+      const processor = 'verify';
+      const frontendurl = `http://jobs.run.edu.ng/`;
       formData.frontendURL = frontendurl;
       formData.processor = processor;
 
@@ -203,12 +201,6 @@ const [success, setSuccess] = useState(false);
   const validateForm = (data: FormData): FormErrors => {
     const validationErrors: FormErrors = {};
 
-    if (!data.username.trim()) {
-      validationErrors.username = 'Username is required';
-    } else if (data.username.length < 4) {
-      validationErrors.username = 'Username must be at least 4 characters long';
-    }
-
     if (!data.emailAddy.trim()) {
       validationErrors.emailAddy = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(data.emailAddy)) {
@@ -234,18 +226,6 @@ const [success, setSuccess] = useState(false);
       flexDirection="column"
       alignItems="flex-end"
     >
-      <TextField
-        fullWidth
-        name="username"
-        label="username"
-        placeholder="JohnDoe"
-        InputLabelProps={{ shrink: true }}
-        value={formData.username}
-        onChange={handleChange}
-        autoComplete="true"
-        sx={{ mb: 3 }}
-      />
-      {errors.username && <span style={{ color: 'red' }}>{errors.username}</span>}
 
       <TextField
         fullWidth
@@ -357,28 +337,6 @@ const [success, setSuccess] = useState(false);
                   </Alert>
                 </Snackbar>
               )}
-      
-      
-      {/* <Divider sx={{ my: 3, '&::before, &::after': { borderTopStyle: 'dashed' } }}>
-        <Typography
-          variant="overline"
-          sx={{ color: 'text.secondary', fontWeight: 'fontWeightMedium' }}
-        >
-          OR
-        </Typography>
-      </Divider> */}
-
-      {/* <Box gap={1} display="flex" justifyContent="center">
-        <IconButton color="inherit">
-          <Iconify icon="logos:google-icon" />
-        </IconButton>
-        <IconButton color="inherit">
-          <Iconify icon="eva:github-fill" />
-        </IconButton>
-        <IconButton color="inherit">
-          <Iconify icon="ri:twitter-x-fill" />
-        </IconButton>
-      </Box> */}
     </>
   );
 }
