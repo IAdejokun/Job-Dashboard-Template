@@ -8,11 +8,14 @@ import { DashboardContent } from 'src/layouts/dashboard';
 // import { getAdminData } from 'src/services/getAdminData';
 // import { makeAuthenticatedRequest } from 'src/services/authRequest';
 
-import type { AdminData } from 'src/interface/admin-data';
+// import type { AdminData } from 'src/interface/admin-data';
 
-import axios from 'axios';
+// import axios from 'axios';
 
 import Alert  from '@mui/material/Alert';
+
+// ----------------------------------------------------------------------
+import { useAdminData } from 'src/routes/hooks/useAdminData';
 
 import { AnalyticsNews } from '../analytics-news';
 import { AnalyticsTasks } from '../analytics-tasks';
@@ -24,52 +27,30 @@ import { AnalyticsTrafficBySite } from '../analytics-traffic-by-site';
 import { AnalyticsCurrentSubject } from '../analytics-current-subject';
 import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 
-// ----------------------------------------------------------------------
 
 export function OverviewAnalyticsView() {
 
+  const {data: adminData, error, isError, refetch } = useAdminData();
   
-
-  const [adminData, setAdminData] = useState<AdminData | null>(null);
-  
-  const [error, setError] = useState<string | null>(null);
-
-  const client = axios.create({
-    baseURL: 'http://jobapi.run.edu.ng/',
-  });
-
-  client.interceptors.request.use((config) => {
-    const token = localStorage.getItem('authtoken');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
+  const [networkStatus, setNetworkStatus] = useState(navigator.onLine)
 
   useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        
-        const email = localStorage.getItem('userEmail');
+    const handleOnline = () => {
+      setNetworkStatus(true)
+      refetch()
+    }
 
-        if (!email) {
-          throw new Error('No email found in localStorage');
-        }
+    const handleOffline = () => setNetworkStatus(false)
 
-        const response = await client.get('getadminbyemail', {
-          params: {
-            emailAddy: email,
-          },
-        });
-        setAdminData(response.data);
-      } catch (err) {
-        console.error('Error fetching admin data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch admin data');
-      } 
-    };
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
 
-    fetchAdminData();
-  }, [client]);
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+
+  }, [refetch])
 
 
   // capitalize the firstletter
@@ -81,11 +62,18 @@ export function OverviewAnalyticsView() {
 
   return (
     <DashboardContent maxWidth="xl">
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+
+      {!networkStatus && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                No internet connection - changes will sync when back online
+              </Alert>
+            )}
+
+      {isError && networkStatus && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error instanceof Error ? error.message : 'Failed to fetch admin data'}
+              </Alert>
+            )}
 
       <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
         Hi, Welcome back {adminData?.firstname ? capitalizeFirstLetter(adminData.firstname) : 'Guest'} 👋

@@ -8,89 +8,16 @@ import { Link as RouterLink } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import LoadingButton from '@mui/lab/LoadingButton';// import Divider from '@mui/material/Divider';
-import type { RadioProps } from '@mui/material/Radio';
-
-import Radio from '@mui/material/Radio';
-import Snackbar from '@mui/material/Snackbar';
-import { styled } from '@mui/material/styles';
-import FormLabel from '@mui/material/FormLabel';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControl from '@mui/material/FormControl';
+import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { useRouter } from 'src/routes/hooks';
 
 import { Iconify } from 'src/components/iconify';
-
-
-
-
-// styling for radios
-
-  const BpIcon = styled('span')(({ theme }) => ({
-    borderRadius: '50%',
-    width: 16,
-    height: 16,
-    boxShadow: 'inset 0 0 0 1px rgba(16,22,26,.2), inset 0 -1px 0 rgba(16,22,26,.1)',
-    backgroundColor: '#f5f8fa',
-    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.8),hsla(0,0%,100%,0))',
-    '.Mui-focusVisible &': {
-      outline: '2px auto rgba(19,124,189,.6)',
-      outlineOffset: 2,
-    },
-    'input:hover ~ &': {
-      backgroundColor: '#ebf1f5',
-      ...theme.applyStyles('dark', {
-        backgroundColor: '#30404d',
-      }),
-    },
-    'input:disabled ~ &': {
-      boxShadow: 'none',
-      background: 'rgba(206,217,224,.5)',
-      ...theme.applyStyles('dark', {
-        background: 'rgba(57,75,89,.5)',
-      }),
-    },
-    ...theme.applyStyles('dark', {
-      boxShadow: '0 0 0 1px rgb(16 22 26 / 40%)',
-      backgroundColor: '#394b59',
-      backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.05),hsla(0,0%,100%,0))',
-    }),
-  }));
-
-  const BpCheckedIcon = styled(BpIcon)({
-    backgroundColor: '#137cbd',
-    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.1),hsla(0,0%,100%,0))',
-    '&::before': {
-      display: 'block',
-      width: 16,
-      height: 16,
-      backgroundImage: 'radial-gradient(#fff,#fff 28%,transparent 32%)',
-      content: '""',
-    },
-    'input:hover ~ &': {
-      backgroundColor: '#106ba3',
-    },
-  });
-
-  // Inspired by blueprintjs
-  function BpRadio(props: RadioProps) {
-    return (
-      <Radio
-        disableRipple
-        color="default"
-        checkedIcon={<BpCheckedIcon />}
-        icon={<BpIcon />}
-        {...props}
-      />
-    );
-  }
-
 
 
 export function SignUpView() {
@@ -119,9 +46,9 @@ export function SignUpView() {
 
   const router = useRouter();
   
-  const [isStaff, setStaff] = useState(true)
+  // const [isStaff, setStaff] = useState(true)
 
-  const [isStudent, setStudent] = useState(false)
+  // const [isStudent, setStudent] = useState(false)
 
   const [showPassword, setShowPassword] = useState(false)
   
@@ -132,6 +59,8 @@ export function SignUpView() {
     const [errOpen, setErrOpen] = React.useState(false);
     
   const [errLogOpen, setErrLogOpen] = React.useState(false);
+
+  const [clicked, setClicked] = useState(false);
 
     const handleClose = (event?: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
        if (reason === 'clickaway') {
@@ -168,23 +97,51 @@ export function SignUpView() {
 
     const [errData, setErrData] = useState('');
   
-    // const handleSignUp = useCallback(() => {
-    //     router.push('/sign-in')
-    // }, [router]);
 
   // form change handler
-    const handleChange = (e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.currentTarget;
-        setFormData({
-            ...formData,
-            [name]: value,
-        })
+
+    const [inputValue, setInputValue] = useState('');
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+      const { value } = e.target;
+      setInputValue(value);
+
+      // email validation
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/ ;
+      const isEmail = emailRegex.test(value);
+      
+      // username validation
+
+      const isUsername = value.length > 3
+
+      if (isEmail) {
+        setFormData(prev => ({
+          ...prev, 
+          emailAddy: value,
+          username: 'dummy_username' 
+        }))
+      } else if (isUsername) {
+        setFormData(prev => ({
+          ...prev,
+          emailAddy: 'default_dummy@gmail.com',
+          username: value.trim()
+        }))
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          emailAddy: '',
+          username: ''
+         }))
+        }
     }
 
   // signup function handler/service
 
     const handleSignup = (e:React.FormEvent<HTMLInputElement>) => {
-        e.preventDefault();
+      e.preventDefault();
+      setClicked(true);
         const newErrors = validateForm(formData);
       setErrors(newErrors);
 
@@ -193,20 +150,12 @@ export function SignUpView() {
         const processor = 'verify';
         const frontendurl = `http://jobs.run.edu.ng/`;
         
-        if (isStaff) {
-          formData.username = 'randomUser'
-        }
-
-        if (isStudent) {
-          formData.emailAddy = 'randomuser@gmail.com'
-        }
-
         formData.frontendurl = frontendurl;
         formData.processor = processor;
         formData.is_Active = 'true';
 
 
-        console.log("Form Submitted successfully");
+        console.log(`Form Submitted successfully, Check email to verify your account`);
 
       // request data to be sent to the backend
         const requestBody = {
@@ -235,7 +184,7 @@ export function SignUpView() {
              setOpen(true);
 
             setTimeout(() => {
-            router.push('/verify');
+            router.push('/sign-in');
           }, 5000 )
 
            } catch (err) {
@@ -253,16 +202,16 @@ export function SignUpView() {
               errorMessage = 'An unexpected error occurred';
             }
             console.log('Full error response', err.response?.data);
-            setErrData(errorMessage);
+               setErrData(errorMessage);
           } else {
-               setErrData('An error occurred');
-               
+               setErrData('An error occurred'); 
              }
+             setClicked(false);
              setErrLogOpen(true);
         }
          })();
-            
-        } else {
+      } else {
+        setClicked(false);
             setErrOpen(true);
         }
     }
@@ -272,21 +221,15 @@ export function SignUpView() {
     const validateForm = (data: FormData): FormErrors => {
         const validationErrors: FormErrors = {};
 
-      if(isStudent === true)
-        if (!data.username.trim()) {
-            validationErrors.username = 'Username is required';    
-        } else if (!/^run\/[a-z]{3}\/\d{2}\/\d{4}$/i.test(data.username)) {
-             validationErrors.username = 'Username must be in the format: run/abc/12/3456';
-      }
+       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+       const isEmailValid = emailRegex.test(data.emailAddy);
+       const isUsernameValid = data.username.trim().split(/\s+/).length > 3;
+
+       if (!isEmailValid && !isUsernameValid) {
+         validationErrors.emailAddy =
+           'Please enter a valid email or username with more than three words';
+       }
       
-          if(isStaff === true){
-         if (!data.emailAddy.trim()) {
-           validationErrors.emailAddy = 'Email is required';
-         } else if (!/\S+@\S+\.\S+/.test(data.emailAddy)) {
-           validationErrors.emailAddy = 'Email is invalid';
-            }
-            
-         }
         if (!data.password) {
             validationErrors.password = 'Password is required';
         } else if (data.password.length < 8) {
@@ -319,39 +262,24 @@ export function SignUpView() {
         <TextField
           fullWidth
           name="username"
-          label="username"
-          placeholder="JohnDoe"
+          label="Username / Email"
+          placeholder="Enter email or username (4+ words)"
           InputLabelProps={{ shrink: true }}
-          value={formData.username}
+          value={inputValue}
           onChange={handleChange}
           autoComplete="true"
           sx={{ mb: 3 }}
-          disabled = {isStaff}
-        />
-        {errors.username && <span style={{ color: 'red' }}>{errors.username}</span>}
-
-        <TextField
-          fullWidth
-          name="emailAddy"
-          label="Email address"
-          placeholder="hello@gmail.com"
-          InputLabelProps={{ shrink: true }}
-          value={formData.emailAddy}
-          onChange={handleChange}
-          autoComplete="true"
-          sx={{ mb: 3 }}
-          disabled = {isStudent}
         />
 
-        {errors.emailAddy && <span style={{ color: 'red' }}>{errors.emailAddy}</span>}
-
+         {errors.emailAddy && <span style={{ color: 'red' }}>{errors.emailAddy}</span>} 
+        
         <TextField
           fullWidth
           name="password"
           label="Password"
           placeholder="@demo1234"
           value={formData.password}
-          onChange={handleChange}
+          onChange={e => setFormData(prev => ({...prev, password: e.target.value}))}
           InputLabelProps={{ shrink: true }}
           type={showPassword ? 'text' : 'password'}
           InputProps={{
@@ -374,7 +302,7 @@ export function SignUpView() {
           label="Confirm Password"
           placeholder="@demo1234"
           value={formData.confirmPassword}
-          onChange={handleChange}
+          onChange={e => setFormData(prev => ({...prev, confirmPassword: e.target.value}))}
           InputLabelProps={{ shrink: true }}
           type={showConfirmPassword ? 'text' : 'password'}
           InputProps={{
@@ -393,26 +321,7 @@ export function SignUpView() {
 
         {errors.confirmPassword && <span style={{ color: 'red' }}>{errors.confirmPassword}</span>}
 
-        {/* add the radio buttons */}
-
-        <FormControl fullWidth sx={{ mb: 1}}>
-          <FormLabel id="demo-customized-radios" sx={{ml:1}}>Role</FormLabel>
-          <RadioGroup
-            row
-            defaultValue="Staff"
-            aria-labelledby="demo-customized-radios"
-            name="customized-radios"
-            sx={{ ml: 1 }}
-          >
-            <FormControlLabel value="Staff" control={<BpRadio />} label="Staff" onClick={() => { setStaff(true); setStudent(false) }} />
-            <FormControlLabel value="Student" control={<BpRadio />} label="Student" onClick={() => { setStudent(true); setStaff(false) }} />
-          </RadioGroup>
-        </FormControl>
-
-        {isStudent && <p>Email field not required for student </p> }
-        {isStaff && <p>Username field not required for staff</p> }
-
-        <LoadingButton fullWidth size="large" type="submit" color="inherit" variant="contained">
+        <LoadingButton loading={clicked} fullWidth size="large" type="submit" color="inherit" variant="contained">
           Sign Up
         </LoadingButton>
       </Box>
@@ -443,7 +352,7 @@ export function SignUpView() {
             key={vertical + horizontal}
           >
             <Alert onClose={handleClose} severity="success" variant="filled" sx={{ width: '100%' }}>
-              Signup Submitted Successfully, Routing to Sign In Page
+              Signup Submitted Successfully, Check email to verify your account, Routing to Sign In Page
             </Alert>
           </Snackbar>
         )}

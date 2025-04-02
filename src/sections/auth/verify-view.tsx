@@ -2,7 +2,7 @@ import type { SnackbarCloseReason } from '@mui/material/Snackbar';
 import type { AxiosResponse,AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios';
 
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -10,14 +10,14 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton'; // import Divider from '@mui/material/Divider';
+import {useSearchParams} from 'react-router-dom'
+
 import Snackbar from '@mui/material/Snackbar';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { useRouter } from 'src/routes/hooks';
 
 import { Iconify } from 'src/components/iconify';
-
-import {useSearchParams, useParams} from 'react-router-dom'
 
 
 
@@ -41,7 +41,7 @@ interface FormErrors {
 
   const router = useRouter();
     
-    const params = useParams();
+  const [searchParams] = useSearchParams();
 
   const [vertical] = useState<'top' | 'bottom'>('top');
   const [horizontal] = useState<'left' | 'center' | 'right'>('right');
@@ -67,8 +67,19 @@ interface FormErrors {
 
   const [errLogOpen, setErrLogOpen] = React.useState(false);
 
-//   const [, setUserEmail] = useState('');
+  const [clicked, setClicked] = useState(false);
 
+  useEffect(() => {
+    const codeFromParams = searchParams.get('is')
+    if (codeFromParams) {
+      setFormData((prevData) => ({
+        ...prevData,
+        eCode: codeFromParams
+      }))
+    }
+  }, [searchParams])
+  
+  
   const handleClose = (event?: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') {
       return;
@@ -94,7 +105,8 @@ interface FormErrors {
            }
     
     const handleVerification = (e: React.FormEvent<HTMLInputElement>) => {
-        e.preventDefault();
+      e.preventDefault();
+      setClicked(true);
         const newErrors = validateForm(formData);
         setErrors(newErrors);
 
@@ -138,24 +150,25 @@ interface FormErrors {
                         } else {
                             errorMessage = 'An unexpected error occurred';
                         }
-                        console.log('Full error response', err.response?.data);
+                      console.log('Full error response', err.response?.data);
+                      setClicked(false)
                         setErrData(errorMessage);
                     } else {
                         setErrData('An error occurred');
-               
-                    }
+                  }
+                  setClicked(false)
                     setErrLogOpen(true);
                 }
-
-
             })();
-
         } else {
+            setClicked(false)
             setErrOpen(true);
             }
 
     }
 
+  // form validation function
+  
  const validateForm = (data: VerifyFormData): FormErrors => {
     const validationErrors: FormErrors = {};
 
@@ -223,7 +236,7 @@ interface FormErrors {
 
         {errors.password && <span style={{ color: 'red' }}>{errors.password}</span>}
 
-        <LoadingButton fullWidth size="large" type="submit" color="inherit" variant="contained">
+        <LoadingButton loading={clicked} fullWidth size="large" type="submit" color="inherit" variant="contained">
           Verify Account 
         </LoadingButton>
       </Box>

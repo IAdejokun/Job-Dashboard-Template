@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { useRouter, usePathname } from 'src/routes/hooks';
+import { useAdminData } from 'src/routes/hooks/useAdminData';
 
 import { _myAccount } from 'src/_mock';
 
@@ -27,7 +28,12 @@ export type AccountPopoverProps = IconButtonProps & {
   }[];
 };
 
+ 
+
 export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps) {
+ 
+  const { data: adminData } = useAdminData();
+  
   const router = useRouter();
 
   const pathname = usePathname();
@@ -42,6 +48,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     setOpenPopover(null);
   }, []);
 
+  const logoutClick = () => {
+    localStorage.removeItem('authtoken');
+    router.push('/sign-in');
+  }
+
   const handleClickItem = useCallback(
     (path: string) => {
       handleClosePopover();
@@ -49,6 +60,16 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     },
     [handleClosePopover, router]
   );
+
+  function capitalizeFirstLetter(string: string) {
+    const randomString = string.toLowerCase();
+    return randomString.charAt(0).toUpperCase() + randomString.slice(1);
+  }
+
+   const Fullname =
+     adminData?.lastname && adminData?.firstname
+       ? `${capitalizeFirstLetter(adminData.lastname)} ${capitalizeFirstLetter(adminData.firstname)} ${capitalizeFirstLetter(adminData.middlename)}`
+       : 'Guest';
 
   return (
     <>
@@ -83,11 +104,13 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {_myAccount?.displayName}
+            {/* {_myAccount?.displayName} */}
+            {adminData ? Fullname : 'Guest'}
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {_myAccount?.email}
+            {/* {_myAccount?.email} */}
+            {adminData ? adminData.emailAddy : 'Guest'}
           </Typography>
         </Box>
 
@@ -129,7 +152,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Box sx={{ p: 1 }}>
-          <Button fullWidth color="error" size="medium" variant="text">
+          <Button fullWidth onClick={logoutClick} color="error" size="medium" variant="text">
             Logout
           </Button>
         </Box>

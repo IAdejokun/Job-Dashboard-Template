@@ -1,5 +1,7 @@
 import 'src/global.css';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 import Fab from '@mui/material/Fab';
 
 import { Router } from 'src/routes/sections';
@@ -11,6 +13,15 @@ import { ThemeProvider } from 'src/theme/theme-provider';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function App() {
   useScrollToTop();
@@ -36,9 +47,11 @@ export default function App() {
   );
 
   return (
-    <ThemeProvider>
-      <Router />
-      {githubButton}
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <Router />
+        {githubButton}
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { VerifyView } from 'src/sections/auth';
+import { ProfileView } from 'src/sections/profile/view';
 
 // ----------------------------------------------------------------------
 
@@ -10,10 +10,10 @@ export default function Page() {
   return (
     <>
       <Helmet>
-        <title> {`Admin Verify - ${CONFIG.appName}`}</title>
+        <title> {`Admin Profile - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <VerifyView/>
+      <ProfileView />
     </>
   );
 }

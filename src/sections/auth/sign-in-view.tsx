@@ -71,6 +71,8 @@ const [success, setSuccess] = useState(false);
   
   const [, setUserEmail] = useState('');
 
+  const [clicked, setClicked] = useState(false)
+
   const handleClose = (event?: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
          if (reason === 'clickaway') {
            return;
@@ -121,14 +123,15 @@ const [success, setSuccess] = useState(false);
   // signin function handler/service
 
   const handleSignin = (e:React.FormEvent<HTMLInputElement>) => {
-          e.preventDefault();
+    e.preventDefault();
+    setClicked(true);
           const newErrors = validateForm(formData);
           setErrors(newErrors);
   
     if (Object.keys(newErrors).length === 0) {
       // const username = formData.username;
       const processor = 'verify';
-      const frontendurl = `http://jobs.run.edu.ng/`;
+      const frontendurl = `http://jobs.run.edu.ng`;
       formData.frontendURL = frontendurl;
       formData.processor = processor;
 
@@ -187,11 +190,13 @@ const [success, setSuccess] = useState(false);
           } else {
             setErrData('An error occurred');
           }
+          setClicked(false)
           setErrLogOpen(true);
         }
       })();
           } else {
-              console.log("Form validation failed due to validation errors");
+      console.log("Form validation failed due to validation errors");
+             setClicked(false);
               setErrOpen(true);
           }
       }
@@ -226,7 +231,6 @@ const [success, setSuccess] = useState(false);
       flexDirection="column"
       alignItems="flex-end"
     >
-
       <TextField
         fullWidth
         name="emailAddy"
@@ -273,9 +277,18 @@ const [success, setSuccess] = useState(false);
 
       {errors.password && <span style={{ color: 'red' }}>{errors.password}</span>}
 
-      <LoadingButton fullWidth size="large" type="submit" color="inherit" variant="contained">
+
+      <LoadingButton
+        loading={clicked} // Pass a boolean value to the loading prop
+        fullWidth
+        size="large"
+        type="submit"
+        color="inherit"
+        variant="contained"
+      >
         Sign in
       </LoadingButton>
+
     </Box>
   );
 
